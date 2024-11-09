@@ -1,0 +1,75 @@
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum EmployeeStatus {
+  Active
+  Inactive
+}
+
+enum Devices {
+  Phone
+  Watch
+  IMac
+  MacMini
+  MacBook
+}
+
+enum EmployeeType {
+  Admin
+  Employee
+}
+
+model devices {
+  id                 String     @id @default(uuid())
+  deviceType         Devices    @map("device_type")
+  deviceName         String     @map("device_name")
+  deviceDescription  String?    @map("device_description")
+  serialNo           String     @unique @map("serial_no")
+  deviceAssignmentId String?    @unique @map("device_assignment_id")
+  assignee           String?
+  isOutdated         Boolean?   @default(false) @map("is_outdated")
+  createdAt          DateTime?  @default(now()) @map("created_at")
+  deletedAt          DateTime?  @map("deleted_at")
+  isDeleted          Boolean    @default(false) @map("is_deleted")
+  updatedAt          DateTime?  @map("updated_at")
+  employee           employees? @relation(fields: [employeeId], references: [id])
+  employeeId         String?
+  history            history[]
+}
+
+model employees {
+  id               String         @id @default(uuid())
+  employeeName     String         @map("employee_name")
+  employeeEmail    String         @unique @map("employee_email")
+  employeePassword String?        @map("employee_password")
+  employeeType     EmployeeType?  @default(Employee) @map("employee_type")
+  employeePhone    String         @map("employee_phone")
+  employeeTeam     String         @map("employee_team")
+  employeeStatus   EmployeeStatus @default(Active) @map("employee_status")
+  createdAt        DateTime       @default(now()) @map("created_at ")
+  deletedAt        DateTime?      @map("deleted_at")
+  updatedAt        DateTime?      @map("updated_at")
+  isDeleted        Boolean        @default(false) @map("is_deleted")
+  devices          devices[]
+  history          history[]
+}
+
+model history {
+  id            String    @id @default(uuid())
+  device        devices   @relation(fields: [deviceId], references: [id])
+  deviceId      String    @unique @map("device_id")
+  employee      employees @relation(fields: [currentUser], references: [id])
+  currentUser   String    @map("current_user")
+  previousUsers String[]  @map("previous_users")
+  createdAt     DateTime  @default(now()) @map("created_at ")
+  deletedAt     DateTime? @map("deleted_at")
+  isDeleted     Boolean   @default(false) @map("is_deleted")
+  updatedAt     DateTime? @map("updated_at")
+}
