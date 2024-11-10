@@ -55,7 +55,7 @@ export const getAllDevices = async (
     }
 
     const allDevices = await prisma.devices.findMany({
-      where: searchFilters,
+      where: { ...searchFilters, isDeleted: false },
       skip,
       take: Number(limit),
     });
