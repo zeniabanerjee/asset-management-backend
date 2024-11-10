@@ -9,7 +9,7 @@ const tokenVerification: RequestHandler = async (req, res, next) => {
   try {
     if (!req.headers.authorization) throw new Error("Unauthorised access!");
 
-    const [, token] = req.headers.authorization.split(" ") as string[];
+    const [, token] = req.headers.authorization.split(" ");
 
     if (!token) throw new Error("Token not found!");
 
