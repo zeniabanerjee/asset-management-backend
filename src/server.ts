@@ -1,12 +1,14 @@
 import express, { Request, Response, NextFunction } from "express";
-import logger from "./middleware/loggerMiddleware";
+import logger from "./middleware/logger/loggerMiddleware";
 import authRouter from "./routes/authRoutes";
+import employeeRoute from "./routes/employeeRoutes";
 
 const app = express();
 app.use(express.json());
 
 app.use(logger);
 app.use(authRouter);
+app.use(employeeRoute);
 
 app.get("/", (req, res) => {
   res.send("Server is running");
