@@ -1,6 +1,6 @@
 import express from "express";
 import {
-  //   getAllUsers,
+  getAllEmployees,
   //   deleteEmployee,
   addOrUpdateEmployee,
 } from "../controller/employeeController";
@@ -13,7 +13,7 @@ const employeeRoute = express.Router();
 employeeRoute.use(tokenVerification);
 employeeRoute.use(verifyAdmin);
 
-// employeeRoute.get("/all-employee", getAllUsers);
+employeeRoute.get("/all-employee", getAllEmployees);
 employeeRoute.post(
   "/create-employee",
   [employeeValidation],

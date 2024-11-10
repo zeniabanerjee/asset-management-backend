@@ -4,6 +4,87 @@ import { StatusCodes } from "http-status-codes";
 
 const prisma = new PrismaClient();
 
+export const getAllEmployees = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const {
+    employeeName,
+    employeeEmail,
+    employeePhone,
+    employeeTeam,
+    employeeStatus,
+    page = "1",
+    limit = "10",
+  } = req.query;
+
+  const searchFilters: any = {};
+
+  if (employeeName) {
+    searchFilters.employeeName = {
+      contains: employeeName as string,
+      mode: "insensitive",
+    };
+  }
+
+  if (employeeEmail) {
+    searchFilters.employeeEmail = {
+      contains: employeeEmail as string,
+      mode: "insensitive",
+    };
+  }
+
+  if (employeePhone) {
+    searchFilters.employeePhone = {
+      contains: employeePhone as string,
+      mode: "insensitive",
+    };
+  }
+
+  if (employeeTeam) {
+    searchFilters.employeeTeam = {
+      contains: employeeTeam as string,
+      mode: "insensitive",
+    };
+  }
+
+  if (employeeStatus) {
+    searchFilters.employeeStatus = {
+      contains: employeeStatus as string,
+      mode: "insensitive",
+    };
+  }
+
+  const skip = (Number(page) - 1) * Number(limit);
+
+  const allEmployees = await prisma.employees.findMany({
+    where: searchFilters,
+    skip,
+    take: Number(limit),
+  });
+
+  const totalEmployees = await prisma.employees.count({
+    where: searchFilters,
+  });
+
+  const totalPages = Math.ceil(totalEmployees / Number(limit));
+
+  res.status(StatusCodes.OK).json({
+    data: {
+      data: allEmployees,
+      pagination: {
+        totalPages,
+        totalEmployees,
+        currentPage: Number(page),
+        limit,
+      },
+    },
+    message: "All employees fetched successfully",
+    success: true,
+  });
+};
+
 export const addOrUpdateEmployee = async (
   req: Request,
   res: Response,
