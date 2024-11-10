@@ -1,7 +1,7 @@
 import express from "express";
 import {
   getAllEmployees,
-  //   deleteEmployee,
+  deleteEmployee,
   addOrUpdateEmployee,
 } from "../controller/employeeController";
 import tokenVerification from "../middleware/tokenVerification/tokenverification";
@@ -24,6 +24,6 @@ employeeRoute.put(
   [employeeValidation],
   addOrUpdateEmployee
 );
-// employeeRoute.delete("/delete-employee/:id", deleteEmployee);
+employeeRoute.delete("/delete-employee/:id", deleteEmployee);
 
 export default employeeRoute;

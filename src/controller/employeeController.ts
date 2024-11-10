@@ -1,4 +1,4 @@
-import { Prisma, PrismaClient } from "@prisma/client";
+import { employees, Prisma, PrismaClient } from "@prisma/client";
 import { NextFunction, Request, Response } from "express";
 import { StatusCodes } from "http-status-codes";
 
@@ -9,80 +9,84 @@ export const getAllEmployees = async (
   res: Response,
   next: NextFunction
 ) => {
-  const {
-    employeeName,
-    employeeEmail,
-    employeePhone,
-    employeeTeam,
-    employeeStatus,
-    page = "1",
-    limit = "10",
-  } = req.query;
+  try {
+    const {
+      employeeName,
+      employeeEmail,
+      employeePhone,
+      employeeTeam,
+      employeeStatus,
+      page = "1",
+      limit = "10",
+    } = req.query;
 
-  const searchFilters: any = {};
+    const searchFilters: any = {};
 
-  if (employeeName) {
-    searchFilters.employeeName = {
-      contains: employeeName as string,
-      mode: "insensitive",
-    };
-  }
+    if (employeeName) {
+      searchFilters.employeeName = {
+        contains: employeeName as string,
+        mode: "insensitive",
+      };
+    }
 
-  if (employeeEmail) {
-    searchFilters.employeeEmail = {
-      contains: employeeEmail as string,
-      mode: "insensitive",
-    };
-  }
+    if (employeeEmail) {
+      searchFilters.employeeEmail = {
+        contains: employeeEmail as string,
+        mode: "insensitive",
+      };
+    }
 
-  if (employeePhone) {
-    searchFilters.employeePhone = {
-      contains: employeePhone as string,
-      mode: "insensitive",
-    };
-  }
+    if (employeePhone) {
+      searchFilters.employeePhone = {
+        contains: employeePhone as string,
+        mode: "insensitive",
+      };
+    }
 
-  if (employeeTeam) {
-    searchFilters.employeeTeam = {
-      contains: employeeTeam as string,
-      mode: "insensitive",
-    };
-  }
+    if (employeeTeam) {
+      searchFilters.employeeTeam = {
+        contains: employeeTeam as string,
+        mode: "insensitive",
+      };
+    }
 
-  if (employeeStatus) {
-    searchFilters.employeeStatus = {
-      contains: employeeStatus as string,
-      mode: "insensitive",
-    };
-  }
+    if (employeeStatus) {
+      searchFilters.employeeStatus = {
+        contains: employeeStatus as string,
+        mode: "insensitive",
+      };
+    }
 
-  const skip = (Number(page) - 1) * Number(limit);
+    const skip = (Number(page) - 1) * Number(limit);
 
-  const allEmployees = await prisma.employees.findMany({
-    where: searchFilters,
-    skip,
-    take: Number(limit),
-  });
+    const allEmployees = await prisma.employees.findMany({
+      where: { ...searchFilters, isDeleted: false },
+      skip,
+      take: Number(limit),
+    });
 
-  const totalEmployees = await prisma.employees.count({
-    where: searchFilters,
-  });
+    const totalEmployees = await prisma.employees.count({
+      where: searchFilters,
+    });
 
-  const totalPages = Math.ceil(totalEmployees / Number(limit));
+    const totalPages = Math.ceil(totalEmployees / Number(limit));
 
-  res.status(StatusCodes.OK).json({
-    data: {
-      data: allEmployees,
-      pagination: {
-        totalPages,
-        totalEmployees,
-        currentPage: Number(page),
-        limit,
+    res.status(StatusCodes.OK).json({
+      data: {
+        data: allEmployees,
+        pagination: {
+          totalPages,
+          totalEmployees,
+          currentPage: Number(page),
+          limit,
+        },
       },
-    },
-    message: "All employees fetched successfully",
-    success: true,
-  });
+      message: "All employees fetched successfully",
+      success: true,
+    });
+  } catch (error) {
+    next(error);
+  }
 };
 
 export const addOrUpdateEmployee = async (
@@ -107,7 +111,7 @@ export const addOrUpdateEmployee = async (
   } = req.body;
 
   try {
-    const updatedEmployee = await prisma.employees.upsert({
+    const updatedEmployee: employees = await prisma.employees.upsert({
       where: {
         id,
       },
@@ -117,6 +121,7 @@ export const addOrUpdateEmployee = async (
         employeePhone,
         employeeStatus,
         employeeTeam,
+        updatedAt: new Date(),
       },
       create: {
         id,
@@ -150,6 +155,31 @@ export const addOrUpdateEmployee = async (
         );
       }
     }
+    next(error);
+  }
+};
+
+// Delete a user
+export const deleteEmployee = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const { id } = req.params;
+  try {
+    const deletedEmployee: employees = await prisma.employees.update({
+      where: { id: id },
+      data: {
+        deletedAt: new Date(),
+        isDeleted: true,
+      },
+    });
+    res.json({
+      data: deletedEmployee,
+      message: "Employee deleted successfully",
+      success: true,
+    });
+  } catch (error) {
     next(error);
   }
 };
